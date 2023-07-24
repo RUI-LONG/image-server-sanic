@@ -4,21 +4,32 @@ This is an image server designed specifically for photos CRUD operations.
 
 ## Usage
 
-Before using this image server, make sure you have the following prerequisites:
+Before running the Sanic Image Server, please ensure that you have the following prerequisites installed on your system:
 
-- [List any relevant prerequisites or system requirements]
+- Python 3.8
 
-To run the image server, follow these steps:
+### Installation
 
-1. [Step 1: Clone the project code to your local machine]
+To install and set up the Sanic Image Server, follow these steps:
 
-2. [Step 2: Install the required dependencies]
+1. **Step 1:** Clone the project code to your local machine using Git:
 
-3. [Step 3: Configure server settings]
+   ```
+   git clone https://github.com/RUI-LONG/image-server
+   cd image-server
+   ```
 
-4. [Step 4: Start the server]
+2. **Step 2:** Install the required dependencies. It is recommended to use a virtual environment:
+    ```
+    python3 -m venv venv
+    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+    pip install -r requirements.txt
+    ```
 
-5. [Step 5: Begin uploading and sharing cosplay images]
+3. Step 3: Start the Sanic Image Server:
+    ```
+    python app.py
+    ```
 
 ## Supported Image Formats
 

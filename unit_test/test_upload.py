@@ -3,7 +3,7 @@ import unittest
 import requests
 
 # Replace with the URL of your API endpoint
-API_ENDPOINT = "http://localhost:8000/image/upload"
+API_ENDPOINT = "http://localhost:8000/images/upload"
 
 # Replace with the path to the folder containing the test images
 IMAGE_FOLDER = "../test_images"
