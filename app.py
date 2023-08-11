@@ -1,14 +1,29 @@
 import os
 import uuid
+import random
 from pathlib import Path
 
 from sanic import Sanic, response
 from sanic.request import Request
 from sanic.response import json, file
+from pymongo import MongoClient
 
 app = Sanic(__name__)
 
+# Connect to MongoDB
+mongo_uri = "mongodb://localhost:27017"
+db_name = "image_db"
+client = MongoClient()
+db = client[db_name]
+collection = db["images"]
+
 IMAGE_DIRECTORY = Path("images")
+
+
+def str2bool(s):
+    if s.lower() in ("true", "1", "yes", "y", "on"):
+        return True
+    return False
 
 
 class ImageInfo:
@@ -16,7 +31,7 @@ class ImageInfo:
         # 類別:
         self.category = form_data.get("category", "")
         # 編號:
-        self.number = form_data.get("number", "")
+        self.number = str(random.randint(0, 9999999)).zfill(7)
         # 劇名:
         self.title = form_data.get("title", "")
         # 名稱:
@@ -127,13 +142,155 @@ async def upload_image(request: Request):
 
     # TODO
     image_info = ImageInfo(request.form)
+    image_data = {
+        "image_id": image_id,
+        "image_path": image_path,
+        "info": {
+            "category": image_info.category,
+            "number": image_info.number,
+            "title": image_info.title,
+            "name": image_info.name,
+            "content": image_info.content,
+            "price": image_info.price,
+            "status": image_info.status,
+            "situation": image_info.situation,
+        },
+    }
+    collection.insert_one(image_data)
+
     return json(
         {
             "message": "Upload successful",
             "image_id": image_id,
-            "image_path": f"http://{request.host}/{image_path}",
+            "image_path": f"{image_path}",
         }
     )
+
+
+@app.get("/images/search")
+async def search_images(request):
+    """
+    Search images by keyword (title or name) in MongoDB.
+
+    This endpoint allows you to search for images by specifying keywords for the title or name in the query parameters.
+
+    openapi:
+    ---
+    operationId: searchImages
+    tags:
+      - CRUD
+    parameters:
+      - name: title
+        description: Keyword to search for in image titles.
+        in: query
+        type: string
+      - name: name
+        description: Keyword to search for in image names.
+        in: query
+        type: string
+      - name: page_number
+        description: Current page number, start from 1. Default is `1`.
+        in: query
+        type: boolean string
+      - name: page_size
+        description: Page size. Default is `25`.
+        in: query
+        type: boolean string
+      - name: exactly_match
+        description: When exact_match is set to `true`, only return exact matches. Default is `false`.
+        in: query
+        type: boolean string
+      - name: is_random
+        description: When is_random is set to `true`, return random matches. Default is `false`.
+        in: query
+        type: boolean string
+    responses:
+      200:
+        description: Successfully retrieved search results.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                results:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      info:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                            description: The title of the image.
+                          name:
+                            type: string
+                            description: The name of the image.
+                    example:
+                      results: [
+                        {
+                          info: {
+                            title: "Beautiful Landscape",
+                            name: "landscape.jpg"
+                          }
+                        },
+                        {
+                          info: {
+                            title: "Cute Animals",
+                            name: "animals.png"
+                          }
+                        }
+                      ]
+      400:
+        description: Bad Request. Missing query parameter(s).
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: An error message indicating missing query parameter(s).
+    """
+    title = request.args.get("title", "")
+    name = request.args.get("name", "")
+    page_number = int(request.args.get("page_number", "1")) - 1
+    page_size = int(request.args.get("page_size", "25"))
+    exactly_match = str2bool(request.args.get("exactly_match", "false"))
+    is_random = str2bool(request.args.get("is_random", "false"))
+
+    if not any([title, name]):
+        return json({"error": "Missing query parameter"}, status=400)
+
+    results = []
+    query = {}
+
+    if title:
+        if exactly_match:
+            query["info.title"] = title
+        else:
+            query["info.title"] = {"$regex": title, "$options": "i"}
+    if name:
+        if exactly_match:
+            query["info.name"] = name
+        else:
+            query["info.name"] = {"$regex": name, "$options": "i"}
+
+    total_count = collection.count_documents(query)
+
+    skip = page_number * page_size
+    limit = page_size
+
+    if total_count == 0:
+        return json({"results": [], "total_count": 0})
+
+    if is_random:
+        cursor = collection.find(query, {"_id": 0}).limit(limit * 2)
+        results = random.sample([image_data for image_data in cursor], limit)
+
+    else:
+        cursor = collection.find(query, {"_id": 0}).skip(skip).limit(limit)
+        results = [image_data for image_data in cursor]
+
+    return json({"results": results, "total_count": total_count})
 
 
 @app.put("/images/<image_name>")
@@ -267,8 +424,8 @@ async def replace_image(request: Request, image_name: str):
     return response.json({"message": "Image replaced successfully"})
 
 
-@app.get("/images/<image_name>")
-async def get_image(request: Request, image_name: str):
+@app.get("/images/<details>/<image_name>")
+async def get_image(request: Request, details: str, image_name: str):
     """
     Get an image by its name.
 
@@ -285,6 +442,11 @@ async def get_image(request: Request, image_name: str):
         in: path
         type: string
         required: true
+      - name: details
+        description: Return image info.
+        in: path
+        type: string
+        required: false
     responses:
       200:
         description: Image found and returned successfully.
@@ -303,6 +465,7 @@ async def get_image(request: Request, image_name: str):
               description: An error message indicating the image was not found.
     """
     image_path = IMAGE_DIRECTORY.joinpath(image_name).absolute()
+    print("details", details)
 
     try:
         if not image_path.exists():
