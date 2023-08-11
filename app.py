@@ -188,16 +188,20 @@ async def search_images(request):
         description: Keyword to search for in image names.
         in: query
         type: string
-      - name: exactly_match
-        description: When exact_match is set to `true`, only return exact matches. Default is `false`.
-        in: query
-        type: boolean string
       - name: page_number
         description: Current page number, start from 1. Default is `1`.
         in: query
         type: boolean string
       - name: page_size
         description: Page size. Default is `25`.
+        in: query
+        type: boolean string
+      - name: exactly_match
+        description: When exact_match is set to `true`, only return exact matches. Default is `false`.
+        in: query
+        type: boolean string
+      - name: is_random
+        description: When is_random is set to `true`, return random matches. Default is `false`.
         in: query
         type: boolean string
     responses:
@@ -251,6 +255,7 @@ async def search_images(request):
     page_number = int(request.args.get("page_number", "1")) - 1
     page_size = int(request.args.get("page_size", "25"))
     exactly_match = str2bool(request.args.get("exactly_match", "false"))
+    is_random = str2bool(request.args.get("is_random", "false"))
 
     if not any([title, name]):
         return json({"error": "Missing query parameter"}, status=400)
@@ -277,8 +282,13 @@ async def search_images(request):
     if total_count == 0:
         return json({"results": [], "total_count": 0})
 
-    cursor = collection.find(query, {"_id": 0}).skip(skip).limit(limit)
-    results = [image_data for image_data in cursor]
+    if is_random:
+        cursor = collection.find(query, {"_id": 0}).limit(limit * 2)
+        results = random.sample([image_data for image_data in cursor], limit)
+
+    else:
+        cursor = collection.find(query, {"_id": 0}).skip(skip).limit(limit)
+        results = [image_data for image_data in cursor]
 
     return json({"results": results, "total_count": total_count})
 
@@ -414,8 +424,8 @@ async def replace_image(request: Request, image_name: str):
     return response.json({"message": "Image replaced successfully"})
 
 
-@app.get("/images/<image_name>")
-async def get_image(request: Request, image_name: str):
+@app.get("/images/<details>/<image_name>")
+async def get_image(request: Request, details: str, image_name: str):
     """
     Get an image by its name.
 
@@ -432,6 +442,11 @@ async def get_image(request: Request, image_name: str):
         in: path
         type: string
         required: true
+      - name: details
+        description: Return image info.
+        in: path
+        type: string
+        required: false
     responses:
       200:
         description: Image found and returned successfully.
@@ -450,6 +465,7 @@ async def get_image(request: Request, image_name: str):
               description: An error message indicating the image was not found.
     """
     image_path = IMAGE_DIRECTORY.joinpath(image_name).absolute()
+    print("details", details)
 
     try:
         if not image_path.exists():
