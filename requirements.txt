@@ -1,3 +1,4 @@
 sanic[ext]
 sanic_openapi
 requests
+pymongo
