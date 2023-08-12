@@ -133,7 +133,6 @@ async def upload_image(request: Request):
 
     image_id = uuid.uuid4().hex
     _, file_extension = os.path.splitext(uploaded_file.name)
-    # filename = f"{hash(uploaded_file.body)}{file_extension}".replace("-", "")
     filename = f"{image_id}{file_extension}".replace("-", "")
 
     image_path = str(IMAGE_DIRECTORY.joinpath(filename)).replace("\\", "/")
@@ -162,6 +161,7 @@ async def upload_image(request: Request):
             "message": "Upload successful",
             "image_id": image_id,
             "image_path": f"{image_path}",
+            "full_image_path": f"http://{request.host}/{image_path}",
         }
     )
 
@@ -292,8 +292,8 @@ async def search_images(request):
     return json({"results": results, "total_count": total_count})
 
 
-@app.put("/images/<image_name>")
-async def replace_image(request: Request, image_name: str):
+@app.put("/images/<image_id>")
+async def replace_image(request: Request, image_id: str):
     """
     Replace an image by its name.
 
@@ -307,8 +307,8 @@ async def replace_image(request: Request, image_name: str):
     tags:
       - CRUD
     parameters:
-      - name: image_name
-        description: The name of the image to be replaced.
+      - name: image_id
+        description: The id of the image to be replaced.
         in: path
         type: string
         required: true
@@ -394,33 +394,56 @@ async def replace_image(request: Request, image_name: str):
                 type: string
                 description: The situation of the image (optional).
     """
+    old_image_path = ""
+    new_image_path = ""
     try:
         uploaded_file = request.files["image"][0]
         if not uploaded_file.type.startswith("image/"):
-            return json(
-                {"error": "Invalid file type. Only images allowed."}, status=400
-            )
-        image_path = IMAGE_DIRECTORY.joinpath(image_name).absolute()
+            return json(status=400)
 
-        if os.path.exists(image_path):
-            try:
-                # Save the new image file, overwriting the existing one
-                with open(image_path, "wb") as f:
-                    f.write(uploaded_file.body)
-            except OSError as e:
-                return response.json(
-                    {"error": f"Failed to replace image: {str(e)}"}, status=500
-                )
-        else:
+        # Check if image exist in DB
+        query = {"image_id": image_id}
+        if not collection.count_documents(query):
             return response.json({"error": "Image not found"}, status=404)
+
+        # # Retrieve image info from DB
+        image_data = collection.find_one(query, {"_id": 0})
+        image_id = image_data["image_id"]
+        old_image_path = image_data["image_path"]
+        image_data["info"].update({k: v[0] for k, v in dict(request.form).items()})
+
+        try:
+            # Save the new image file, overwriting the existing one
+            _, file_extension = os.path.splitext(uploaded_file.name)
+            new_image_path = str(
+                IMAGE_DIRECTORY.joinpath(f"{image_id}{file_extension}")
+            ).replace("\\", "/")
+
+            with open(new_image_path, "wb") as f:
+                f.write(uploaded_file.body)
+
+            image_data["image_path"] = new_image_path
+
+        except OSError as e:
+            return response.json(
+                {"error": f"Failed to replace image: {str(e)}"}, status=500
+            )
+
+        collection.replace_one(query, image_data)
+
     except KeyError:
         # Image file not provided
         if all(v == [""] for v in request.form.values()):
-            return response.json({"message": "Nothing Changed"}, status=304)
+            return response.json({"message": "Nothing Changed"}, status=204)
 
-    # TODO
-    image_info = ImageInfo(request.form)
-    return response.json({"message": "Image replaced successfully"})
+    image_path = new_image_path or old_image_path
+    return response.json(
+        {
+            "message": "Image replaced successfully",
+            "image_id": image_id,
+            "image_path": image_path,
+        }
+    )
 
 
 @app.get("/images/<image_name>")
@@ -468,6 +491,15 @@ async def get_image(request: Request, image_name: str):
     try:
         if not image_path.exists():
             return json({"error": "Image not found"}, status=404)
+        if request.args.get("details"):
+            file_name, _ = os.path.splitext(image_name)
+            query = {"image_id": file_name}
+            if not collection.count_documents(query):
+                return json({"error": "Image not found"}, status=404)
+
+            image_data = collection.find_one(query, {"_id": 0})
+            return json(image_data, status=404)
+
         return await file(str(image_path))
     except FileNotFoundError:
         return json({"error": "Image not found"}, status=404)
