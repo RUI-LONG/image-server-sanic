@@ -11,9 +11,9 @@ from pymongo import MongoClient
 app = Sanic(__name__)
 
 # Connect to MongoDB
-mongo_uri = "mongodb://localhost:27017"
+mongo_uri = os.getenv("DB_URL") or "mongodb://localhost:27017"
 db_name = "image_db"
-client = MongoClient()
+client = MongoClient(mongo_uri)
 db = client[db_name]
 collection = db["images"]
 
@@ -140,7 +140,6 @@ async def upload_image(request: Request):
     with open(image_path, "wb") as f:
         f.write(uploaded_file.body)
 
-    # TODO
     image_info = ImageInfo(request.form)
     image_data = {
         "image_id": image_id,
@@ -424,8 +423,8 @@ async def replace_image(request: Request, image_name: str):
     return response.json({"message": "Image replaced successfully"})
 
 
-@app.get("/images/<details>/<image_name>")
-async def get_image(request: Request, details: str, image_name: str):
+@app.get("/images/<image_name>")
+async def get_image(request: Request, image_name: str):
     """
     Get an image by its name.
 
@@ -465,7 +464,6 @@ async def get_image(request: Request, details: str, image_name: str):
               description: An error message indicating the image was not found.
     """
     image_path = IMAGE_DIRECTORY.joinpath(image_name).absolute()
-    print("details", details)
 
     try:
         if not image_path.exists():
@@ -554,4 +552,4 @@ async def health_check(request):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
+    app.run(host="0.0.0.0", port=9527)

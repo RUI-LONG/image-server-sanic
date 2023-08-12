@@ -1,0 +1,27 @@
+version: '3'
+services:
+  image_container:
+    build:
+      context: .
+      dockerfile: dockerfile
+    image: image_server:1.0
+    ports:
+      - "9527:9527"
+    volumes:
+      - /home/ubuntu/image-server/images:/images
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - 'mongo:/data/db'
+
+volumes:
+  mongo:
+  # localvolume:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     o: bind
+  #     device: ./images
