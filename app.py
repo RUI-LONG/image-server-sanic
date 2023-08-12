@@ -408,7 +408,6 @@ async def replace_image(request: Request, image_id: str):
 
         # # Retrieve image info from DB
         image_data = collection.find_one(query, {"_id": 0})
-        image_id = image_data["image_id"]
         old_image_path = image_data["image_path"]
         image_data["info"].update({k: v[0] for k, v in dict(request.form).items()})
 
@@ -505,8 +504,8 @@ async def get_image(request: Request, image_name: str):
         return json({"error": "Image not found"}, status=404)
 
 
-@app.delete("/images/<image_name>")
-async def delete_image(request: Request, image_name: str):
+@app.delete("/images/<image_id>")
+async def delete_image(request: Request, image_id: str):
     """
     Delete an image by its name.
 
@@ -549,18 +548,24 @@ async def delete_image(request: Request, image_name: str):
               type: string
               description: An error message indicating the deletion failure.
     """
-    image_path = IMAGE_DIRECTORY.joinpath(image_name).absolute()
+
+    query = {"image_id": image_id}
+    if not collection.count_documents(query):
+        return response.json({"error": "Image not found"}, status=404)
+
+    image_data = collection.find_one(query, {"_id": 0})
+    image_path = str(image_data["image_path"])
+    collection.delete_one(query)
 
     if os.path.exists(image_path):
         try:
             os.remove(image_path)
-            return response.json({"message": "Image deleted successfully"})
         except OSError as e:
             return response.json(
                 {"error": f"Failed to delete image: {str(e)}"}, status=500
             )
-    else:
-        return response.json({"error": "Image not found"}, status=404)
+
+    return response.json({"message": "Image deleted successfully"})
 
 
 @app.get("/")
