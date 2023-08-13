@@ -28,6 +28,8 @@ def str2bool(s):
 
 class ImageInfo:
     def __init__(self, form_data={}):
+        # 租借或販售:
+        self.business_type = form_data.get("business_type", "rent")
         # 類別:
         self.category = form_data.get("category", "")
         # 編號:
@@ -42,8 +44,6 @@ class ImageInfo:
         self.price = form_data.get("price", "")
         # 狀態:(註:服裝的新舊情況)
         self.status = form_data.get("status", "")
-        # 情境:
-        self.situation = form_data.get("situation", "")
 
 
 @app.post("/images/upload")
@@ -99,6 +99,9 @@ async def upload_image(request: Request):
               image:
                 type: image
                 description: The image to be replaced (required).
+              business_type:
+                type: string
+                description: Rent or sell (required).
               category:
                 type: string
                 description: The category of the image (optional).
@@ -120,9 +123,6 @@ async def upload_image(request: Request):
               status:
                 type: string
                 description: The status of the image (optional).
-              situation:
-                type: string
-                description: The situation of the image (optional).
     """
     if "image" not in request.files:
         return json({"error": "No file provided"}, status=400)
@@ -144,6 +144,7 @@ async def upload_image(request: Request):
         "image_id": image_id,
         "image_path": image_path,
         "info": {
+            "business_type": image_info.business_type,
             "category": image_info.category,
             "number": image_info.number,
             "title": image_info.title,
@@ -151,7 +152,6 @@ async def upload_image(request: Request):
             "content": image_info.content,
             "price": image_info.price,
             "status": image_info.status,
-            "situation": image_info.situation,
         },
     }
     collection.insert_one(image_data)
@@ -369,6 +369,9 @@ async def replace_image(request: Request, image_id: str):
               image:
                 type: image
                 description: The image to be replaced (optional).
+              business_type:
+                type: string
+                description: Rent or sell (required).
               category:
                 type: string
                 description: The category of the image (optional).
@@ -390,9 +393,6 @@ async def replace_image(request: Request, image_id: str):
               status:
                 type: string
                 description: The status of the image (optional).
-              situation:
-                type: string
-                description: The situation of the image (optional).
     """
     old_image_path = ""
     new_image_path = ""
