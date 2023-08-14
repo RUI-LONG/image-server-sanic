@@ -1,4 +1,5 @@
 sanic[ext]
 sanic_openapi
+sanic-cors
 requests
 pymongo

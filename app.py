@@ -4,11 +4,13 @@ import random
 from pathlib import Path
 
 from sanic import Sanic, response
+from sanic_cors import CORS
 from sanic.request import Request
 from sanic.response import json, file
 from pymongo import MongoClient
 
 app = Sanic(__name__)
+CORS(app)
 
 # Connect to MongoDB
 mongo_uri = os.getenv("DB_URL") or "mongodb://localhost:27017"
