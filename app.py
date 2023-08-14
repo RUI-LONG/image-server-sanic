@@ -33,7 +33,7 @@ class ImageInfo:
         # 類別:
         self.category = form_data.get("category", "")
         # 編號:
-        self.number = str(random.randint(0, 9999999)).zfill(7)
+        self.number = form_data.get("number", "")
         # 劇名:
         self.title = form_data.get("title", "")
         # 名稱:
@@ -187,6 +187,14 @@ async def search_images(request):
         description: Keyword to search for in image names.
         in: query
         type: string
+      - name: business_type
+        description: Rent or sell (required).
+        in: query
+        type: string
+      - name: number
+        description: The number of the image (optional).
+        in: query
+        type: string
       - name: page_number
         description: Current page number, start from 1. Default is `1`.
         in: query
@@ -251,27 +259,23 @@ async def search_images(request):
     """
     title = request.args.get("title", "")
     name = request.args.get("name", "")
+    number = request.args.get("number", "")
+    business_type = request.args.get("business_type", "")
+
     page_number = int(request.args.get("page_number", "1")) - 1
     page_size = int(request.args.get("page_size", "25"))
     exactly_match = str2bool(request.args.get("exactly_match", "false"))
     is_random = str2bool(request.args.get("is_random", "false"))
 
-    if not any([title, name]):
-        return json({"error": "Missing query parameter"}, status=400)
-
-    results = []
-    query = {}
-
-    if title:
-        if exactly_match:
-            query["info.title"] = title
-        else:
-            query["info.title"] = {"$regex": title, "$options": "i"}
-    if name:
-        if exactly_match:
-            query["info.name"] = name
-        else:
-            query["info.name"] = {"$regex": name, "$options": "i"}
+    results, query = [], {}
+    criteria = ["title", "name", "number", "business_type"]
+    for criterion in criteria:
+        value = locals()[criterion]
+        if value:
+            if exactly_match:
+                query[f"info.{criterion}"] = value
+            else:
+                query[f"info.{criterion}"] = {"$regex": value, "$options": "i"}
 
     total_count = collection.count_documents(query)
 
