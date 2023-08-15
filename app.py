@@ -6,7 +6,7 @@ from pathlib import Path
 from sanic import Sanic, response
 from sanic_cors import CORS
 from sanic.request import Request
-from sanic.response import json, file
+from sanic.response import json, file, HTTPResponse
 from pymongo import MongoClient
 
 app = Sanic(__name__)
@@ -26,6 +26,15 @@ def str2bool(s):
     if s.lower() in ("true", "1", "yes", "y", "on"):
         return True
     return False
+
+
+async def add_cors_headers(request: Request, response: HTTPResponse):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    response.headers["Access-Control-Max-Age"] = "3600"
+
+
+app.register_middleware(add_cors_headers, attach_to="response")
 
 
 class ImageInfo:
