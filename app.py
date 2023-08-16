@@ -32,6 +32,7 @@ async def add_cors_headers(request: Request, response: HTTPResponse):
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     response.headers["Access-Control-Max-Age"] = "3600"
+    response.headers["Access-Control-Allow-Methods"] = "DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT"
 
 
 app.register_middleware(add_cors_headers, attach_to="response")
@@ -448,7 +449,7 @@ async def replace_image(request: Request, image_id: str):
     except KeyError:
         # Image file not provided
         if all(v == [""] for v in request.form.values()):
-            return response.json({"message": "Nothing Changed"}, status=204)
+            return response.json({"error": "Nothing Changed"}, status=204)
 
     image_path = new_image_path or old_image_path
     return response.json(
