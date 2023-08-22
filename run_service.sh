@@ -1,7 +1,7 @@
 #!/bin/bash
-docker system prune -f
+sudo docker system prune -f
 
-docker image build -f dockerfile -t image_server:1.0 .
+sudo docker image build -f dockerfile -t image_server:1.0 .
 
-docker-compose down
-docker-compose up -d
+sudo docker-compose down
+sudo docker-compose up -d

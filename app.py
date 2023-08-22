@@ -514,7 +514,7 @@ async def get_image(request: Request, image_name: str):
                 return json({"error": "Image not found"}, status=404)
 
             image_data = collection.find_one(query, {"_id": 0})
-            return json(image_data, status=404)
+            return json(image_data, status=200)
 
         return await file(str(image_path))
     except FileNotFoundError:
