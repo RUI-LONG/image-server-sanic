@@ -300,7 +300,9 @@ async def search_images(request):
 
     if is_random:
         cursor = collection.find(query, {"_id": 0}).limit(limit * 2)
-        results = random.sample([image_data for image_data in cursor], limit)
+        results = [image_data for image_data in cursor]
+        if len(results) > limit:
+          results = random.sample(results, limit)
 
     else:
         cursor = collection.find(query, {"_id": 0}).skip(skip).limit(limit)
@@ -505,11 +507,11 @@ async def get_image(request: Request, image_name: str):
     image_path = IMAGE_DIRECTORY.joinpath(image_name).absolute()
 
     try:
-        if not image_path.exists():
+        if not request.args.get("details"):
+          if not image_path.exists():
             return json({"error": "Image not found"}, status=404)
-        if request.args.get("details"):
-            file_name, _ = os.path.splitext(image_name)
-            query = {"image_id": file_name}
+        else:
+            query = {"image_id": image_name}
             if not collection.count_documents(query):
                 return json({"error": "Image not found"}, status=404)
 
