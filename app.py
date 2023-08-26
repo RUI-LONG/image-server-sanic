@@ -275,6 +275,7 @@ async def search_images(request):
     name = request.args.get("name", "")
     number = request.args.get("number", "")
     business_type = request.args.get("business_type", "")
+    category = request.args.get("category", "")
 
     page_number = int(request.args.get("page_number", "1")) - 1
     page_size = int(request.args.get("page_size", "25"))
@@ -295,7 +296,7 @@ async def search_images(request):
         query["$or"] = or_conditions
 
     else:
-        criteria = ["title", "name", "number", "business_type"]
+        criteria = ["title", "name", "number", "business_type", "category"]
         for criterion in criteria:
             value = locals()[criterion]
             if value:
