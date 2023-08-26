@@ -32,7 +32,9 @@ async def add_cors_headers(request: Request, response: HTTPResponse):
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     response.headers["Access-Control-Max-Age"] = "3600"
-    response.headers["Access-Control-Allow-Methods"] = "DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT"
+    response.headers[
+        "Access-Control-Allow-Methods"
+    ] = "DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT"
 
 
 app.register_middleware(add_cors_headers, attach_to="response")
@@ -273,21 +275,30 @@ async def search_images(request):
     name = request.args.get("name", "")
     number = request.args.get("number", "")
     business_type = request.args.get("business_type", "")
-    category =  request.args.get("category", "")
 
     page_number = int(request.args.get("page_number", "1")) - 1
     page_size = int(request.args.get("page_size", "25"))
-    exactly_match = str2bool(request.args.get("exactly_match", "false"))
+    is_search_bar = str2bool(request.args.get("is_search_bar", "false"))
     is_random = str2bool(request.args.get("is_random", "false"))
 
     results, query = [], {}
-    criteria = ["title", "name", "number", "business_type", "category"]
-    for criterion in criteria:
-        value = locals()[criterion]
-        if value:
-            if exactly_match:
-                query[f"info.{criterion}"] = value
-            else:
+    if is_search_bar:
+        or_conditions = []
+        criteria = ["title", "name", "number"]
+
+        for criterion in criteria:
+            value = locals()[criterion]
+            if value:
+                or_conditions.append(
+                    {f"info.{criterion}": {"$regex": value, "$options": "i"}}
+                )
+        query["$or"] = or_conditions
+
+    else:
+        criteria = ["title", "name", "number", "business_type"]
+        for criterion in criteria:
+            value = locals()[criterion]
+            if value:
                 query[f"info.{criterion}"] = {"$regex": value, "$options": "i"}
 
     total_count = collection.count_documents(query)
@@ -302,7 +313,7 @@ async def search_images(request):
         cursor = collection.find(query, {"_id": 0}).limit(limit * 2)
         results = [image_data for image_data in cursor]
         if len(results) > limit:
-          results = random.sample(results, limit)
+            results = random.sample(results, limit)
 
     else:
         cursor = collection.find(query, {"_id": 0}).skip(skip).limit(limit)
@@ -508,8 +519,8 @@ async def get_image(request: Request, image_name: str):
 
     try:
         if not request.args.get("details"):
-          if not image_path.exists():
-            return json({"error": "Image not found"}, status=404)
+            if not image_path.exists():
+                return json({"error": "Image not found"}, status=404)
         else:
             query = {"image_id": image_name}
             if not collection.count_documents(query):
