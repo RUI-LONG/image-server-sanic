@@ -1,3 +1,4 @@
+import re
 import os
 import uuid
 import random
@@ -291,7 +292,7 @@ async def search_images(request):
             value = locals()[criterion]
             if value:
                 or_conditions.append(
-                    {f"info.{criterion}": {"$regex": value, "$options": "i"}}
+                    {f"info.{criterion}": {"$regex": re.escape(value), "$options": "i"}}
                 )
         query["$or"] = or_conditions
 
@@ -300,7 +301,10 @@ async def search_images(request):
         for criterion in criteria:
             value = locals()[criterion]
             if value:
-                query[f"info.{criterion}"] = {"$regex": value, "$options": "i"}
+                query[f"info.{criterion}"] = {
+                    "$regex": re.escape(value),
+                    "$options": "i",
+                }
 
     total_count = collection.count_documents(query)
 
