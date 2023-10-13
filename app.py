@@ -603,6 +603,38 @@ async def delete_image(request: Request, image_id: str):
     return response.json({"message": "Image deleted successfully"})
 
 
+@app.delete("/images")
+async def delete_multiple_images(request: Request):
+    image_ids = request.json.get("image_ids", [])
+    image_ids = list(set(image_ids))
+    delete_image_paths = []
+
+    if not image_ids:
+        return response.json({"error": "Images not found"}, status=404)
+
+    query = {"image_id": {"$in": image_ids}}
+    for image_data in collection.find(query, {"_id": 0, "image_path": 1}):
+        delete_image_paths.append(str(image_data.get("image_path", "")))
+
+    deleted_images = collection.delete_many(query)
+    if deleted_images.deleted_count == 0:
+        return response.json({"error": "Images not found"}, status=404)
+
+    for path in delete_image_paths:
+        try:
+            if os.path.exists(path):
+                os.remove(path)
+        except OSError as e:
+            pass
+
+    return response.json(
+        {
+            "message": "Image deleted successfully",
+            "delete_count": deleted_images.deleted_count,
+        }
+    )
+
+
 @app.get("/")
 async def health_check(request):
     """This is a simple health check API
@@ -620,7 +652,7 @@ async def health_check(request):
                     schema:
                         type: string
     """
-    return response.text("Server is running \n")
+    return response.text("Server is running v1.1\n")
 
 
 if __name__ == "__main__":
