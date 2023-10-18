@@ -431,20 +431,20 @@ async def replace_image(request: Request, image_id: str):
     """
     old_image_path = ""
     new_image_path = ""
-    try:
+    # Check if image exist in DB
+    query = {"image_id": image_id}
+    if not collection.count_documents(query):
+        return response.json({"error": "Image not found"}, status=404)
+
+    # # Retrieve image info from DB
+    image_data = collection.find_one(query, {"_id": 0})
+    old_image_path = image_data["image_path"]
+    image_data["info"].update({k: v[0] for k, v in dict(request.form).items()})
+
+    if request.files.get("image"):
         uploaded_file = request.files["image"][0]
         if not uploaded_file.type.startswith("image/"):
             return json(status=400)
-
-        # Check if image exist in DB
-        query = {"image_id": image_id}
-        if not collection.count_documents(query):
-            return response.json({"error": "Image not found"}, status=404)
-
-        # # Retrieve image info from DB
-        image_data = collection.find_one(query, {"_id": 0})
-        old_image_path = image_data["image_path"]
-        image_data["info"].update({k: v[0] for k, v in dict(request.form).items()})
 
         try:
             # Save the new image file, overwriting the existing one
@@ -463,12 +463,7 @@ async def replace_image(request: Request, image_id: str):
                 {"error": f"Failed to replace image: {str(e)}"}, status=500
             )
 
-        collection.replace_one(query, image_data)
-
-    except KeyError:
-        # Image file not provided
-        if all(v == [""] for v in request.form.values()):
-            return response.json({"error": "Nothing Changed"}, status=204)
+    collection.replace_one(query, image_data)
 
     image_path = new_image_path or old_image_path
     return response.json(
