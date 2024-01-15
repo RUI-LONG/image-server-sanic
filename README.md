@@ -2,6 +2,8 @@
 
 This is an image server designed specifically for photos CRUD operations, and operates as the website's backend: [神龍變裝](https://www.wuwish.com.tw/)
 
+[API Blueprint](https://rui-long.github.io/image-server-sanic/)
+
 ## Usage
 
 Before running the Sanic Image Server, please ensure that you have the following prerequisites installed on your system:
