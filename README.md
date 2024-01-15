@@ -43,10 +43,8 @@ This image server supports the following common image formats:
 | GIF (.gif)          | ✔️        |
 | WebP (.webp)        | ✔️        |
 | AVIF (.avif)        | ❌        |
-| SVG (.svg)          | ✔️        |
+| SVG (.svg)          | ❌        |
 | BMP (.bmp)          | ✔️        |
-
-> Note: SVG format is currently not supported.
 
 ## Contribution
 
