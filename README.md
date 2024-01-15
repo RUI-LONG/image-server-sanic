@@ -1,12 +1,13 @@
 # Image Server
 
-This is an image server designed specifically for photos CRUD operations.
+This is an image server designed specifically for photos CRUD operations, and operates as the website's backend: [神龍變裝](https://www.wuwish.com.tw/)
 
 ## Usage
 
 Before running the Sanic Image Server, please ensure that you have the following prerequisites installed on your system:
 
 - Python 3.8
+- Sanic
 
 ### Installation
 
