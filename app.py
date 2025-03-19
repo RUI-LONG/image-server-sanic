@@ -33,9 +33,9 @@ async def add_cors_headers(request: Request, response: HTTPResponse):
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     response.headers["Access-Control-Max-Age"] = "3600"
-    response.headers[
-        "Access-Control-Allow-Methods"
-    ] = "DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT"
+    response.headers["Access-Control-Allow-Methods"] = (
+        "DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT"
+    )
 
 
 app.register_middleware(add_cors_headers, attach_to="response")
@@ -72,72 +72,72 @@ async def upload_image(request: Request):
     ---
     operationId: fooDots
     tags:
-      - CRUD
+            - CRUD
     requestBody:
-      content:
-        image/*:
-          schema:
-            type: string
-            format: binary
-      required: true
+            content:
+                    image/*:
+                            schema:
+                                    type: string
+                                    format: binary
+            required: true
     responses:
-      200:
-        description: Upload successful.
-        schema:
-          type: object
-          properties:
-            message:
-              type: string
-              description: A success message.
-            image_id:
-              type: string
-              description: The unique ID assigned to the uploaded image.
-            image_path:
-              type: string
-              description: The URL to access the uploaded image.
+            200:
+                    description: Upload successful.
+                    schema:
+                            type: object
+                            properties:
+                                    message:
+                                            type: string
+                                            description: A success message.
+                                    image_id:
+                                            type: string
+                                            description: The unique ID assigned to the uploaded image.
+                                    image_path:
+                                            type: string
+                                            description: The URL to access the uploaded image.
 
-      400:
-        description: No file provided or invalid file type.
-        schema:
-          type: object
-          properties:
-            error:
-              type: string
-              description: An error message indicating that no file was provided or the file type is invalid.
+            400:
+                    description: No file provided or invalid file type.
+                    schema:
+                            type: object
+                            properties:
+                                    error:
+                                            type: string
+                                            description: An error message indicating that no file was provided or the file type is invalid.
 
     requestBody:
-      content:
-        application/x-www-form-urlencoded:
-          schema:
-            type: object
-            properties:
-              image:
-                type: image
-                description: The image to be replaced (required).
-              business_type:
-                type: string
-                description: Rent or sell (required).
-              category:
-                type: string
-                description: The category of the image (optional).
-              number:
-                type: string
-                description: The number of the image (optional).
-              title:
-                type: string
-                description: The title of the image (optional).
-              name:
-                type: string
-                description: The name of the image (optional).
-              content:
-                type: string
-                description: The content of the image (optional).
-              price:
-                type: string
-                description: The price of the image (optional).
-              status:
-                type: string
-                description: The status of the image (optional).
+            content:
+                    application/x-www-form-urlencoded:
+                            schema:
+                                    type: object
+                                    properties:
+                                            image:
+                                                    type: image
+                                                    description: The image to be replaced (required).
+                                            business_type:
+                                                    type: string
+                                                    description: Rent or sell (required).
+                                            category:
+                                                    type: string
+                                                    description: The category of the image (optional).
+                                            number:
+                                                    type: string
+                                                    description: The number of the image (optional).
+                                            title:
+                                                    type: string
+                                                    description: The title of the image (optional).
+                                            name:
+                                                    type: string
+                                                    description: The name of the image (optional).
+                                            content:
+                                                    type: string
+                                                    description: The content of the image (optional).
+                                            price:
+                                                    type: string
+                                                    description: The price of the image (optional).
+                                            status:
+                                                    type: string
+                                                    description: The status of the image (optional).
     """
     if "image" not in request.files:
         return json({"error": "No file provided"}, status=400)
@@ -192,85 +192,85 @@ async def search_images(request):
     ---
     operationId: searchImages
     tags:
-      - CRUD
+            - CRUD
     parameters:
-      - name: title
-        description: Keyword to search for in image titles.
-        in: query
-        type: string
-      - name: name
-        description: Keyword to search for in image names.
-        in: query
-        type: string
-      - name: business_type
-        description: Rent or sell (required).
-        in: query
-        type: string
-      - name: number
-        description: The number of the image (optional).
-        in: query
-        type: string
-      - name: page_number
-        description: Current page number, start from 1. Default is `1`.
-        in: query
-        type: boolean string
-      - name: page_size
-        description: Page size. Default is `25`.
-        in: query
-        type: boolean string
-      - name: exactly_match
-        description: When exact_match is set to `true`, only return exact matches. Default is `false`.
-        in: query
-        type: boolean string
-      - name: is_random
-        description: When is_random is set to `true`, return random matches. Default is `false`.
-        in: query
-        type: boolean string
+            - name: title
+                    description: Keyword to search for in image titles.
+                    in: query
+                    type: string
+            - name: name
+                    description: Keyword to search for in image names.
+                    in: query
+                    type: string
+            - name: business_type
+                    description: Rent or sell (required).
+                    in: query
+                    type: string
+            - name: number
+                    description: The number of the image (optional).
+                    in: query
+                    type: string
+            - name: page_number
+                    description: Current page number, start from 1. Default is `1`.
+                    in: query
+                    type: boolean string
+            - name: page_size
+                    description: Page size. Default is `25`.
+                    in: query
+                    type: boolean string
+            - name: exactly_match
+                    description: When exact_match is set to `true`, only return exact matches. Default is `false`.
+                    in: query
+                    type: boolean string
+            - name: is_random
+                    description: When is_random is set to `true`, return random matches. Default is `false`.
+                    in: query
+                    type: boolean string
     responses:
-      200:
-        description: Successfully retrieved search results.
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                results:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      info:
-                        type: object
-                        properties:
-                          title:
-                            type: string
-                            description: The title of the image.
-                          name:
-                            type: string
-                            description: The name of the image.
-                    example:
-                      results: [
-                        {
-                          info: {
-                            title: "Beautiful Landscape",
-                            name: "landscape.jpg"
-                          }
-                        },
-                        {
-                          info: {
-                            title: "Cute Animals",
-                            name: "animals.png"
-                          }
-                        }
-                      ]
-      400:
-        description: Bad Request. Missing query parameter(s).
-        schema:
-          type: object
-          properties:
-            error:
-              type: string
-              description: An error message indicating missing query parameter(s).
+            200:
+                    description: Successfully retrieved search results.
+                    content:
+                            application/json:
+                                    schema:
+                                            type: object
+                                            properties:
+                                                    results:
+                                                            type: array
+                                                            items:
+                                                                    type: object
+                                                                    properties:
+                                                                            info:
+                                                                                    type: object
+                                                                                    properties:
+                                                                                            title:
+                                                                                                    type: string
+                                                                                                    description: The title of the image.
+                                                                                            name:
+                                                                                                    type: string
+                                                                                                    description: The name of the image.
+                                                                    example:
+                                                                            results: [
+                                                                                    {
+                                                                                            info: {
+                                                                                                    title: "Beautiful Landscape",
+                                                                                                    name: "landscape.jpg"
+                                                                                            }
+                                                                                    },
+                                                                                    {
+                                                                                            info: {
+                                                                                                    title: "Cute Animals",
+                                                                                                    name: "animals.png"
+                                                                                            }
+                                                                                    }
+                                                                            ]
+            400:
+                    description: Bad Request. Missing query parameter(s).
+                    schema:
+                            type: object
+                            properties:
+                                    error:
+                                            type: string
+                                            description: An error message indicating missing query parameter(s).
     """
     title = request.args.get("title", "")
     name = request.args.get("name", "")
@@ -301,10 +301,13 @@ async def search_images(request):
         for criterion in criteria:
             value = locals()[criterion]
             if value:
-                query[f"info.{criterion}"] = {
-                    "$regex": re.escape(value),
-                    "$options": "i",
-                }
+                if criterion == "category" and value == "men-traditional-chinese":
+                    query[f"info.{criterion}"] = value
+                else:
+                    query[f"info.{criterion}"] = {
+                        "$regex": re.escape(value),
+                        "$options": "i",
+                    }
 
     total_count = collection.count_documents(query)
 
@@ -330,105 +333,105 @@ async def search_images(request):
 @app.put("/images/<image_id>")
 async def replace_image(request: Request, image_id: str):
     """
-    Replace an image by its name.
+		Replace an image by its name.
 
-    This endpoint allows you to replace an existing image in the server's image directory.
-    Note: If you want to update information only and not the image itself, \
-        do not include the 'image' parameter in the request.
+		This endpoint allows you to replace an existing image in the server's image directory.
+		Note: If you want to update information only and not the image itself, \
+				do not include the 'image' parameter in the request.
 
-    openapi:
-    ---
-    operationId: fooDots
-    tags:
-      - CRUD
-    parameters:
-      - name: image_id
-        description: The id of the image to be replaced.
-        in: path
-        type: string
-        required: true
-    requestBody:
-      content:
-        image/*:
-          schema:
-            type: string
-            format: binary
-      required: true
-    responses:
-      200:
-        description: Image replaced successfully.
-        schema:
-          type: object
-          properties:
-            message:
-              type: string
-              description: A success message.
-      304:
-        description: Nothing changed.
-        schema:
-          type: object
-          properties:
-            message:
-              type: string
-              description: A message indicating that nothing was changed.
-      400:
-        description: Invalid file type.
-        schema:
-          type: object
-          properties:
-            error:
-              type: string
-              description: An error message indicating that only image files are allowed.
-      404:
-        description: Image not found.
-        schema:
-          type: object
-          properties:
-            error:
-              type: string
-              description: An error message indicating the image was not found.
-      500:
-        description: Failed to replace image.
-        schema:
-          type: object
-          properties:
-            error:
-              type: string
-              description: An error message indicating the replacement failure.
-    requestBody:
-      content:
-        application/x-www-form-urlencoded:
-          schema:
-            type: object
-            properties:
-              image:
-                type: image
-                description: The image to be replaced (optional).
-              business_type:
-                type: string
-                description: Rent or sell (required).
-              category:
-                type: string
-                description: The category of the image (optional).
-              number:
-                type: string
-                description: The number of the image (optional).
-              title:
-                type: string
-                description: The title of the image (optional).
-              name:
-                type: string
-                description: The name of the image (optional).
-              content:
-                type: string
-                description: The content of the image (optional).
-              price:
-                type: string
-                description: The price of the image (optional).
-              status:
-                type: string
-                description: The status of the image (optional).
-    """
+		openapi:
+		---
+		operationId: fooDots
+		tags:
+			- CRUD
+		parameters:
+			- name: image_id
+				description: The id of the image to be replaced.
+				in: path
+				type: string
+				required: true
+		requestBody:
+			content:
+				image/*:
+					schema:
+						type: string
+						format: binary
+			required: true
+		responses:
+			200:
+				description: Image replaced successfully.
+				schema:
+					type: object
+					properties:
+						message:
+							type: string
+							description: A success message.
+			304:
+				description: Nothing changed.
+				schema:
+					type: object
+					properties:
+						message:
+							type: string
+							description: A message indicating that nothing was changed.
+			400:
+				description: Invalid file type.
+				schema:
+					type: object
+					properties:
+						error:
+							type: string
+							description: An error message indicating that only image files are allowed.
+			404:
+				description: Image not found.
+				schema:
+					type: object
+					properties:
+						error:
+							type: string
+							description: An error message indicating the image was not found.
+			500:
+				description: Failed to replace image.
+				schema:
+					type: object
+					properties:
+						error:
+							type: string
+							description: An error message indicating the replacement failure.
+		requestBody:
+			content:
+				application/x-www-form-urlencoded:
+					schema:
+						type: object
+						properties:
+							image:
+								type: image
+								description: The image to be replaced (optional).
+							business_type:
+								type: string
+								description: Rent or sell (required).
+							category:
+								type: string
+								description: The category of the image (optional).
+							number:
+								type: string
+								description: The number of the image (optional).
+							title:
+								type: string
+								description: The title of the image (optional).
+							name:
+								type: string
+								description: The name of the image (optional).
+							content:
+								type: string
+								description: The content of the image (optional).
+							price:
+								type: string
+								description: The price of the image (optional).
+							status:
+								type: string
+								description: The status of the image (optional).
+		"""
     old_image_path = ""
     new_image_path = ""
     # Check if image exist in DB
@@ -486,34 +489,34 @@ async def get_image(request: Request, image_name: str):
     ---
     operationId: fooDots
     tags:
-      - CRUD
+            - CRUD
     parameters:
-      - name: image_name
-        description: The name of the image to be retrieved.
-        in: path
-        type: string
-        required: true
-      - name: details
-        description: Return image info.
-        in: path
-        type: string
-        required: false
+            - name: image_name
+                    description: The name of the image to be retrieved.
+                    in: path
+                    type: string
+                    required: true
+            - name: details
+                    description: Return image info.
+                    in: path
+                    type: string
+                    required: false
     responses:
-      200:
-        description: Image found and returned successfully.
-        content:
-          image/*:
-            schema:
-              type: string
-              format: binary
-      404:
-        description: Image not found.
-        schema:
-          type: object
-          properties:
-            error:
-              type: string
-              description: An error message indicating the image was not found.
+            200:
+                    description: Image found and returned successfully.
+                    content:
+                            image/*:
+                                    schema:
+                                            type: string
+                                            format: binary
+            404:
+                    description: Image not found.
+                    schema:
+                            type: object
+                            properties:
+                                    error:
+                                            type: string
+                                            description: An error message indicating the image was not found.
     """
     image_path = IMAGE_DIRECTORY.joinpath(image_name).absolute()
 
@@ -545,38 +548,38 @@ async def delete_image(request: Request, image_id: str):
     ---
     operationId: fooDots
     tags:
-      - CRUD
+            - CRUD
     parameters:
-      - name: image_name
-        description: The name of the image to be deleted.
-        in: path
-        type: string
-        required: true
+            - name: image_name
+                    description: The name of the image to be deleted.
+                    in: path
+                    type: string
+                    required: true
     responses:
-      200:
-        description: Image deleted successfully.
-        schema:
-          type: object
-          properties:
-            message:
-              type: string
-              description: A success message.
-      404:
-        description: Image not found.
-        schema:
-          type: object
-          properties:
-            error:
-              type: string
-              description: An error message indicating the image was not found.
-      500:
-        description: Failed to delete image.
-        schema:
-          type: object
-          properties:
-            error:
-              type: string
-              description: An error message indicating the deletion failure.
+            200:
+                    description: Image deleted successfully.
+                    schema:
+                            type: object
+                            properties:
+                                    message:
+                                            type: string
+                                            description: A success message.
+            404:
+                    description: Image not found.
+                    schema:
+                            type: object
+                            properties:
+                                    error:
+                                            type: string
+                                            description: An error message indicating the image was not found.
+            500:
+                    description: Failed to delete image.
+                    schema:
+                            type: object
+                            properties:
+                                    error:
+                                            type: string
+                                            description: An error message indicating the deletion failure.
     """
 
     query = {"image_id": image_id}
@@ -638,14 +641,14 @@ async def health_check(request):
     ---
     operationId: fooDots
     tags:
-      - healthCheck
+            - healthCheck
     responses:
-        200:
-            description: Server is running
-            content:
-                text/plain:
-                    schema:
-                        type: string
+                    200:
+                                    description: Server is running
+                                    content:
+                                                    text/plain:
+                                                                    schema:
+                                                                                    type: string
     """
     return response.text("Server is running v1.1\n")
 
