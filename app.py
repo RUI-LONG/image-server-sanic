@@ -301,16 +301,8 @@ async def search_images(request):
         for criterion in criteria:
             value = locals()[criterion]
             if value:
-                if criterion == "category":
-                  categories = [c.strip() for c in value.split(",") if c.strip()]
-                  if len(categories) == 1 and categories[0] == "men-traditional-chinese":
-                      query[f"info.{criterion}"] = categories[0]
-                  else:
-                      query[f"info.{criterion}"] = {
-                          "$in": [
-                              re.compile(re.escape(cat), re.IGNORECASE) for cat in categories
-                          ]
-                      }
+                if criterion == "category" and value == "men-traditional-chinese":
+                    query[f"info.{criterion}"] = value
                 else:
                     query[f"info.{criterion}"] = {
                         "$regex": re.escape(value),
